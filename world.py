@@ -14,7 +14,7 @@ class World:
         self.peers = []
         self.csend = 0
         self.crecv = 0
-        self.every = Every(0.1)
+        self.every = Every(1)
         self.it = 0
 
         self.totalobjectives = 0
@@ -27,7 +27,7 @@ class World:
 
     def env(self):
         for peer in self.peers:
-            flag = {"target":randint(0,len(self.peers)-1), "content":random()}
+            flag = {"type":"flag", "target":randint(0,len(self.peers)-1), "content":random()}
             peer.flagin.append(flag)
             self.objectives.append(flag)
         self.totalobjectives = len(self.objectives)
@@ -73,9 +73,21 @@ class World:
 
         simend = time()
         if self.every:
-            os.system("clear")
+            #os.system("clear")
             self.cbacklog = sum([len(peer.recvarr) for peer in self.peers])
             self.check()
             print("ITER:{} FPS:{} Sent:{} Recv:{} Backlog:{} Flags:{} Cleared:{}".format(
                 self.it, int(1/(simend-simstart)), self.csend, self.crecv, self.cbacklog, self.totalobjectives, self.clearedobjectives))
+
+
+            img = Image.new("RGB", (self.size, self.size))
+            draw = ImageDraw.Draw(img)
+            for peer in self.peers:
+                color = (0,0,255)
+                if peer.pid == 0:
+                    color = (255,255,255)
+                color = (min(255,len(peer.recvarr)),0,255)
+                draw.rectangle(peer.pos+[peer.pos[0]+1,peer.pos[1]+1], color)
+            img.save("anim/%i.png" % self.it)
+
             self.it += 1

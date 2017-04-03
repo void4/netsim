@@ -4,6 +4,7 @@ from utils import Every
 
 peerid = 0
 # Add local time with different offset and speed
+# Or number of executed instructions
 class Peer:
     def __init__(self):
         # Unique Peer ID
@@ -64,4 +65,4 @@ class Peer:
     # Facilitates debug output for peer 0
     def p(self, *args):
         if self.pid == 0:
-            print(self.pid, args)
+            print(self.pid, str(args))
