@@ -13,8 +13,8 @@ class TrackPeer(Peer):
         rtime = time()
 
         if self.pingint:
-            if len(self.recvarr)<5:
-                self.send({"type":"ping", "origin":self.pid, "data":self.state["ping"][self.pid]})
+            #if len(self.recvarr)<5:
+            self.send({"type":"ping", "origin":self.pid, "data":self.state["ping"][self.pid]})
 
         c = Counter()
         for msg in self.recvarr:
@@ -30,6 +30,8 @@ class TrackPeer(Peer):
             if content["type"] == "ping":
                 self.recvarr.pop(0)
                 self.state["ping"][content["origin"]] = content["data"]
+                if len(self.recvarr)<200 and random()<0.05:
+                    self.send(msg["content"])
 
             if source != self.pid:
                 if source not in self.state["ping"][self.pid]:
@@ -83,15 +85,15 @@ class GraphPeer(TrackPeer):
         if len(self.flagin)>0:
             flag = self.flagin.pop(0)
             if flag["target"] == self.pid:
-                self.flagout.append(flag["content"])
+                self.flagout.append(flag)
             else:
                 self.recvarr.append({"target":flag["target"], "source":self.pid, "content":flag})
 
 
         self.track()
 
-        if len(self.recvarr) > 10:
-            self.recvarr = [msg for msg in self.recvarr if msg["content"]["type"]!="ping"]
+        #if len(self.recvarr) > 10:
+        #    self.recvarr = [msg for i, msg in enumerate(self.recvarr) if msg["content"]["type"]!="ping" or i<10]
 
         if len(self.recvarr)==0 or self.recvarr[0]["content"]["type"] == "ping":
             return
@@ -105,12 +107,14 @@ class GraphPeer(TrackPeer):
         content = msg["content"]
 
         if content["type"] == "flag" and content["target"] == self.pid:
-            self.flagout.append(content["content"])
+            self.flagout.append(content)
         else:
             if "target" in content:
                 path = self.route(content["target"])
                 if path:
                     #self.p("route", path, target, msg)
+                    if "hop" in content:
+                        content["hop"] += 1
                     self.send(content, target=path[1])
                 else:
                     retry = True

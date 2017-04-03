@@ -27,7 +27,7 @@ class World:
 
     def env(self):
         for peer in self.peers:
-            flag = {"type":"flag", "target":randint(0,len(self.peers)-1), "content":random()}
+            flag = {"type":"flag", "hop":0, "target":randint(0,len(self.peers)-1), "data":random()}
             peer.flagin.append(flag)
             self.objectives.append(flag)
         self.totalobjectives = len(self.objectives)
@@ -35,10 +35,12 @@ class World:
     def check(self):
         for obj in self.objectives:
             target = self.peers[obj["target"]]
-            if obj["content"] in target.flagout:
-                self.clearedobjectives += 1
-                self.objectives.remove(obj)
-                target.flagout.remove(obj["content"])
+            for flag in target.flagout:
+                if obj["data"] == flag["data"]:
+                    print("Received flag after %i hops" % obj["hop"])
+                    self.clearedobjectives += 1
+                    self.objectives.remove(obj)
+                    target.flagout.remove(flag)
 
         #count false flags at the end
 
@@ -64,12 +66,12 @@ class World:
             for pid in index.intersect((peer.pos[0]-bb,peer.pos[1]-bb,peer.pos[0]+1+bb,peer.pos[1]+1+bb)):
                 peer2 = self.peers[pid]
                 dist = distsquared(peer.pos, peer2.pos, self.size, self.size)
-                if peer2 != peer and 10/dist>random():
+                if peer2 != peer and dist<50:#10/dist>random():
                     for msg in peer.sendarr:
                         peer2.recv(msg)#aah, all packets sent at once! not realistic
                         self.crecv += 1
             peer.sendarr = []
-            peer.pos = [(p+(random()-0.5)*0.2)%self.size for p in peer.pos]
+            #peer.pos = [(p+(random()-0.5)*0.2)%self.size for p in peer.pos]
 
         simend = time()
         if self.every:
