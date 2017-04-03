@@ -10,3 +10,7 @@ New Peers should subclass Peer and only specify two functions:
 - `update`: Called as long as the node is alive, can send() packets and read from self.recvarr
 
 All state should reside in the self.state dictionary so it can be easily analysed.
+
+#### Output example:
+
+`ITER:39 FPS:6 Sent:269389 Recv:449557 Backlog:178771 Flags:500 Cleared:80`
