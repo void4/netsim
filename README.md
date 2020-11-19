@@ -14,3 +14,16 @@ All state should reside in the self.state dictionary so it can be easily analyse
 #### Output example:
 
 `ITER:39 FPS:6 Sent:269389 Recv:449557 Backlog:178771 Flags:500 Cleared:80`
+
+## Installation
+
+```
+# Clone repository
+git clone https://github.com/void4/netsim.git
+# Go into folder
+cd netsim
+# Install Stackless Python
+pyenv local stackless-3.5.4
+# Install dependencies:
+python -m pip install -r requirements.txt
+```

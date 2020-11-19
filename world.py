@@ -5,6 +5,8 @@ import os
 from PIL import Image, ImageDraw
 from pyqtree import Index
 
+os.makedirs("anim", exist_ok=True)
+
 from utils import distsquared, Every
 
 class World:
