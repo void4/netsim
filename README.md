@@ -23,6 +23,8 @@ git clone https://github.com/void4/netsim.git
 # Go into folder
 cd netsim
 # Install Stackless Python
+pyenv install stackless-3.5.4
+# Use this version in this directory
 pyenv local stackless-3.5.4
 # Install dependencies:
 python -m pip install -r requirements.txt
