@@ -17,6 +17,12 @@ All state should reside in the self.state dictionary so it can be easily analyse
 
 ## Installation
 
+Using PyEnv to install Stackless Python:
+
+https://github.com/pyenv/pyenv-installer
+
+https://github.com/pyenv/pyenv/wiki/common-build-problems
+
 ```
 # Clone repository
 git clone https://github.com/void4/netsim.git
