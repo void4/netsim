@@ -11,7 +11,7 @@ font = pygame.font.SysFont(None, 24)
 w = 800
 h = 600
 
-radius = 100
+radius = 150
 
 screen = pygame.display.set_mode((w,h))
 
@@ -33,10 +33,16 @@ while running:
 		x,y = peer.pos
 
 		pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(x, y, 20, 20))
-		pygame.draw.ellipse(screen, (255, 0, 0), pygame.Rect(x-world.radius, y-world.radius, world.radius*2, world.radius*2), width=1)
+		pygame.draw.ellipse(screen, (200, 200, 200), pygame.Rect(x-world.radius, y-world.radius, world.radius*2, world.radius*2), width=1)
 
 		img = font.render(str(peer.seq), True, (0,0,0))
 		screen.blit(img, (x, y))
+
+	for event in world.connectivity:
+		pygame.draw.line(screen, (0,0,0), event[0].pos, event[1].pos, width=1)
+
+	for event in world.events:
+		pygame.draw.line(screen, (0,255,0), event[0].pos, event[1].pos, width=5)
 
 	i += 1
 

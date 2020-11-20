@@ -1,7 +1,7 @@
 from time import time
 
 # Calculates distance in wrapped 2d-space
-def distsquared(a, b, width, height):
+def wrappedDistanceSquared(a, b, width, height):
     dx = a[0]-b[0]
     if dx>width//2:
         dx = width-dx
@@ -9,6 +9,9 @@ def distsquared(a, b, width, height):
     if dy>height//2:
         dy = height-dy
     return dx*dx+dy*dy
+
+def wrappedDistance(a,b,width,height):
+    return (wrappedDistanceSquared(a,b,width,height))**0.5
 
 # Object which is true once after <interval> seconds
 class Every:

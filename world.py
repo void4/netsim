@@ -7,7 +7,7 @@ from pyqtree import Index
 
 os.makedirs("anim", exist_ok=True)
 
-from utils import distsquared, Every
+from utils import wrappedDistance, Every
 
 class World:
     def __init__(self, width=800, height=600, radius=300,runtime=100):
@@ -24,6 +24,9 @@ class World:
         self.totalobjectives = 0
         self.clearedobjectives = 0
         self.objectives = []
+
+        self.connectivity = []
+        self.events = []
 
     def add(self, peer):
         peer.pos = [random()*self.width, random()*self.height]
@@ -60,6 +63,9 @@ class World:
             self.update()
 
     def update(self):
+        self.events = []
+        # Peers may be moving
+        self.connectivity = []
         simstart = time()
         index = Index((0,0,self.width,self.height))
         for peer in self.peers:#randomize order
@@ -72,11 +78,13 @@ class World:
             self.csend += len(peer.sendarr)
             for pid in index.intersect((peer.pos[0]-self.radius,peer.pos[1]-self.radius,peer.pos[0]+1+self.radius,peer.pos[1]+1+self.radius)):
                 peer2 = self.peers[pid]
-                dist = distsquared(peer.pos, peer2.pos, self.width, self.height)
+                self.connectivity.append([peer, peer2, ""])
+                dist = wrappedDistance(peer.pos, peer2.pos, self.width, self.height)
                 if peer2 != peer and dist<self.radius:#10/dist>random():
                     for msg in peer.sendarr:
                         #TODO package loss probability
                         peer2.recv(msg)#aah, all packets sent at once! not realistic
+                        self.events.append([peer, peer2, msg])
                         self.crecv += 1
             peer.sendarr = []
             #peer.pos = [(p+(random()-0.5)*0.2)%self.size for p in peer.pos]
