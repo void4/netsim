@@ -10,8 +10,10 @@ os.makedirs("anim", exist_ok=True)
 from utils import distsquared, Every
 
 class World:
-    def __init__(self, size=256, runtime=100):
-        self.size = size
+    def __init__(self, width=800, height=600, radius=300,runtime=100):
+        self.width = width
+        self.height = height
+        self.radius = radius
         self.runtime = runtime
         self.peers = []
         self.csend = 0
@@ -24,7 +26,7 @@ class World:
         self.objectives = []
 
     def add(self, peer):
-        peer.pos = [random()*self.size for i in range(2)]
+        peer.pos = [random()*self.width, random()*self.height]
         self.peers.append(peer)
 
     def env(self):
@@ -46,16 +48,20 @@ class World:
 
         #count false flags at the end
 
-    def run(self):
+    def init(self):
+        """Called after adding peers, initializes flags and time"""
         self.env()
         start = time()
+
+    def run(self):
+        self.init()
         #while time()<start+self.runtime:
         while self.it<100:
             self.update()
 
     def update(self):
         simstart = time()
-        index = Index((0,0,self.size,self.size))
+        index = Index((0,0,self.width,self.height))
         for peer in self.peers:#randomize order
             index.insert(peer.pid, (peer.pos[0],peer.pos[1],peer.pos[0]+1,peer.pos[1]+1))
 
@@ -64,12 +70,12 @@ class World:
             stackless.run(1000)#run for n seconds?#randint(500,3000))
             peer.task.remove()
             self.csend += len(peer.sendarr)
-            bb = 50
-            for pid in index.intersect((peer.pos[0]-bb,peer.pos[1]-bb,peer.pos[0]+1+bb,peer.pos[1]+1+bb)):
+            for pid in index.intersect((peer.pos[0]-self.radius,peer.pos[1]-self.radius,peer.pos[0]+1+self.radius,peer.pos[1]+1+self.radius)):
                 peer2 = self.peers[pid]
-                dist = distsquared(peer.pos, peer2.pos, self.size, self.size)
-                if peer2 != peer and dist<50:#10/dist>random():
+                dist = distsquared(peer.pos, peer2.pos, self.width, self.height)
+                if peer2 != peer and dist<self.radius:#10/dist>random():
                     for msg in peer.sendarr:
+                        #TODO package loss probability
                         peer2.recv(msg)#aah, all packets sent at once! not realistic
                         self.crecv += 1
             peer.sendarr = []
@@ -83,15 +89,17 @@ class World:
             print("ITER:{} FPS:{} Sent:{} Recv:{} Backlog:{} Flags:{} Cleared:{}".format(
                 self.it, int(1/(simend-simstart)), self.csend, self.crecv, self.cbacklog, self.totalobjectives, self.clearedobjectives))
 
-
-            img = Image.new("RGB", (self.size, self.size))
-            draw = ImageDraw.Draw(img)
-            for peer in self.peers:
-                color = (0,0,255)
-                if peer.pid == 0:
-                    color = (255,255,255)
-                color = (min(255,len(peer.recvarr)),0,255)
-                draw.rectangle(peer.pos+[peer.pos[0]+1,peer.pos[1]+1], color)
-            img.save("anim/%i.png" % self.it)
+            #self.draw()
 
             self.it += 1
+
+    def draw(self):
+        img = Image.new("RGB", (self.width, self.height))
+        draw = ImageDraw.Draw(img)
+        for peer in self.peers:
+            color = (0,0,255)
+            if peer.pid == 0:
+                color = (255,255,255)
+            color = (min(255,len(peer.recvarr)),0,255)
+            draw.rectangle(peer.pos+[peer.pos[0]+1,peer.pos[1]+1], color)
+        img.save("anim/%i.png" % self.it)
