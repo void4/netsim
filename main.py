@@ -1,5 +1,5 @@
 from world import World
-from peers import FloodPeer, GraphPeer
+from peers import FloodPeer, GraphPeer, EmptyPeer
 
 import pygame
 from time import sleep
@@ -19,7 +19,7 @@ color = (255, 255, 255)
 
 world = World(w,h,radius)
 for i in range(50):
-	world.add(GraphPeer())
+	world.add(GraphPeer())#GraphPeer())
 
 world.init()
 

@@ -124,6 +124,15 @@ class GraphPeer(TrackPeer):
         if retry:
             self.recvarr.append(msg)
 
+class EmptyPeer(Peer):
+    def setup(self):
+        pass
+
+    def update(self):
+        self.p(self.recvarr)
+        self.recvarr = []
+        self.send("test")
+
 # Implements basic packet flooding mechanism, does not resend packets with same seq number
 class FloodPeer(TrackPeer):
 

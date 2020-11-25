@@ -25,6 +25,11 @@ class World:
         self.clearedobjectives = 0
         self.objectives = []
 
+        self.flagbandwidth = None
+        self.flagavglag = None
+
+        self.doneobjectives = []
+
         self.connectivity = []
         self.events = []
 
@@ -34,12 +39,13 @@ class World:
 
     def env(self):
         for peer in self.peers:
-            flag = {"type":"flag", "hop":0, "target":randint(0,len(self.peers)-1), "data":random()}
+            flag = {"type":"flag", "hop":0, "target":randint(0,len(self.peers)-1), "data":random(), "creation":self.it}
             peer.flagin.append(flag)
             self.objectives.append(flag)
         self.totalobjectives = len(self.objectives)
 
     def check(self):
+        now = time()
         for obj in self.objectives:
             target = self.peers[obj["target"]]
             for flag in target.flagout:
@@ -48,13 +54,23 @@ class World:
                     self.clearedobjectives += 1
                     self.objectives.remove(obj)
                     target.flagout.remove(flag)
+                    flag["capture"] = self.it
+                    self.doneobjectives.append(flag)
+
+        # total flag bandwidth vs current (last n steps)
+        # Time vs steps
+        self.flagbandwidth = len(self.doneobjectives)/self.it#flags/iteration
+        # TODO visualize distribution
+        # Include those not done?
+        if len(self.doneobjectives) > 0:
+            self.flagavglag = sum([flag["capture"]-flag["creation"] for flag in self.doneobjectives])/len(self.doneobjectives)
 
         #count false flags at the end
 
     def init(self):
         """Called after adding peers, initializes flags and time"""
+        self.start = time()
         self.env()
-        start = time()
 
     def run(self):
         self.init()
@@ -82,24 +98,28 @@ class World:
                 dist = wrappedDistance(peer.pos, peer2.pos, self.width, self.height)
                 if peer2 != peer and dist<self.radius:#10/dist>random():
                     for msg in peer.sendarr:
-                        #TODO package loss probability
+                        #TODO package loss probability & distance loss
                         peer2.recv(msg)#aah, all packets sent at once! not realistic
                         self.events.append([peer, peer2, msg])
                         self.crecv += 1
             peer.sendarr = []
             #peer.pos = [(p+(random()-0.5)*0.2)%self.size for p in peer.pos]
 
+        self.it += 1
+
         simend = time()
         if self.every:
             #os.system("clear")
             self.cbacklog = sum([len(peer.recvarr) for peer in self.peers])
             self.check()
-            print("ITER:{} FPS:{} Sent:{} Recv:{} Backlog:{} Flags:{} Cleared:{}".format(
-                self.it, int(1/(simend-simstart)), self.csend, self.crecv, self.cbacklog, self.totalobjectives, self.clearedobjectives))
+            FlagAvgLag = self.flagavglag if self.flagavglag else float("NaN")
+            InvFlagBandw = 1.0/self.flagbandwidth if self.flagbandwidth else float("NaN")
+            print("ITER:{} FPS:{} Sent:{} Recv:{} Backlog:{} Flags:{} Cleared:{} FlAvgLag: {:.2f}it InvFlBw: {:.2f}it/fl".format(
+                self.it, int(1/(simend-simstart)), self.csend, self.crecv, self.cbacklog, self.totalobjectives, self.clearedobjectives, FlagAvgLag, InvFlagBandw))
 
             #self.draw()
 
-            self.it += 1
+
 
     def draw(self):
         img = Image.new("RGB", (self.width, self.height))
