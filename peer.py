@@ -50,9 +50,12 @@ class Peer:
 
     # Constructs a packet and puts it in the outgoing buffer
     # By default, the packet is broadcast to all peers
-    def send(self, msg, target=None):
-        self.sendarr.append({"target":target, "source":self.pid, "seq":self.seq, "content":msg})
-        self.seq += 1
+    def send(self, msg, target=None, seq=None):
+        if seq is None:
+            seq = self.seq
+            self.seq += 1
+        self.sendarr.append({"target":target, "source":self.pid, "seq":seq, "content":msg})
+
 
     # This function is called as long as the peer is alive
     def update(self):

@@ -141,12 +141,12 @@ class FloodPeer(TrackPeer):
         self.state["seq"] = {}
 
     def update(self):
-        self.track()
+        #self.track()
 
         if len(self.flagin)>0:
             flag = self.flagin.pop(0)
             if flag["target"] == self.pid:
-                self.flagout.append(flag["content"])
+                self.flagout.append(flag)
             else:
                 self.send(flag)
 
@@ -157,11 +157,13 @@ class FloodPeer(TrackPeer):
             content = msg["content"]
 
             #if content["type"] != "ping":
-            if content["target"] == self.pid:
-                if target == self.pid:
-                    print(content)#"RECEIVED TARGETED PACKET")
-                self.flagout.append(content["content"])
-            else:
+            if content.get("target") == self.pid:
+                #if target == self.pid:
+                #    print(content)#"RECEIVED TARGETED PACKET")
+                self.flagout.append(content)
+            elif "seq" in msg:
+                #print(msg)
+                seq = msg["seq"]
                 # Might not receive packets in order!
                 """
                 if self.state["seq"].get(source, -1) < seq:
@@ -172,9 +174,9 @@ class FloodPeer(TrackPeer):
                     self.state["seq"][source] = []
                 if seq not in self.state["seq"][source]:
                     self.state["seq"][source].append(seq)
-                    if content["target"] in self.state["ping"]:
-                        self.send(content, target=content["target"])
-                        self.p("TARGETED PACKET", content)
+                    if content.get("target") in self.state["ping"]:
+                        self.send(content, target=content["target"], seq=msg["seq"])
+                        #self.p("TARGETED PACKET", content)
                     else:
-                        self.send(content)
+                        self.send(content, seq=msg["seq"])
                         #self.p("UNTARGETED PACKET")

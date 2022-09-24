@@ -94,11 +94,15 @@ class World:
             for flag in target.flagout:
                 if obj["data"] == flag["data"]:
                     print("Received flag after %i hops" % obj["hop"])
-                    self.clearedobjectives += 1
-                    self.objectives.remove(obj)
+                    # Ignore double submissions
+                    if obj in self.objectives:
+                        self.objectives.remove(obj)
+                        self.clearedobjectives += 1
+                        flag["capture"] = self.it
+                        self.doneobjectives.append(flag)
                     target.flagout.remove(flag)
-                    flag["capture"] = self.it
-                    self.doneobjectives.append(flag)
+
+
 
         # total flag bandwidth vs current (last n steps)
         # Time vs steps
