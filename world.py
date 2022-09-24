@@ -94,9 +94,9 @@ class World:
             self.csend += len(peer.sendarr)
             for pid in index.intersect((peer.pos[0]-self.radius,peer.pos[1]-self.radius,peer.pos[0]+1+self.radius,peer.pos[1]+1+self.radius)):
                 peer2 = self.peers[pid]
-                self.connectivity.append([peer, peer2, ""])
                 dist = wrappedDistance(peer.pos, peer2.pos, self.width, self.height)
                 if peer2 != peer and dist<self.radius:#10/dist>random():
+                    self.connectivity.append([peer, peer2, ""])
                     for msg in peer.sendarr:
                         #TODO package loss probability & distance loss
                         peer2.recv(msg)#aah, all packets sent at once! not realistic
