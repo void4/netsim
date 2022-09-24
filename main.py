@@ -1,4 +1,5 @@
 from time import sleep
+import json
 
 import pygame
 
@@ -12,8 +13,8 @@ pygame.init()
 pygame.display.set_caption("NetSim")
 font = pygame.font.SysFont(None, 24)
 
-w = 512#800
-h = 512#600
+w = 1000#800
+h = 800#600
 
 radius = 300
 
@@ -55,7 +56,7 @@ while running:
 		pygame.draw.line(screen, (0,255,0), event[0].pos, ((event[0].pos[0]+event[1].pos[0])//2, (event[0].pos[1]+event[1].pos[1])//2), width=3)
 
 	if world.selected_peer:
-		ptext.draw(str(world.selected_peer.state), pos=(0,0), color=(0,0,0), fontsize=12)
+		ptext.draw(json.dumps(world.selected_peer.state, sort_keys=True, indent=4), pos=(0,0), color=(0,0,0), fontsize=12)
 		x,y = world.selected_peer.pos
 		pygame.draw.rect(screen, (255, 100, 100), pygame.Rect(x-peer_width//2-selrect, y-peer_height//2-selrect, peer_width+selrect*2, peer_height+selrect*2))
 
