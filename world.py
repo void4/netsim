@@ -114,8 +114,9 @@ class World:
             self.check()
             FlagAvgLag = self.flagavglag if self.flagavglag else float("NaN")
             InvFlagBandw = 1.0/self.flagbandwidth if self.flagbandwidth else float("NaN")
-            print("ITER:{} FPS:{} Sent:{} Recv:{} Backlog:{} Flags:{} Cleared:{} FlAvgLag: {:.2f}it InvFlBw: {:.2f}it/fl".format(
-                self.it, int(1/(simend-simstart)), self.csend, self.crecv, self.cbacklog, self.totalobjectives, self.clearedobjectives, FlagAvgLag, InvFlagBandw))
+            roundresult = "ITER:{} FPS:{} Sent:{} Recv:{} Backlog:{} Flags:{} Cleared:{} FlAvgLag: {:.2f}it InvFlBw: {:.2f}it/fl".format(
+                self.it, int(1/(simend-simstart)), self.csend, self.crecv, self.cbacklog, self.totalobjectives, self.clearedobjectives, FlagAvgLag, InvFlagBandw)
+            print(roundresult)
 
             #self.draw()
 
