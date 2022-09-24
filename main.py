@@ -6,7 +6,7 @@ import pygame
 import ptext
 
 from world import World
-from peers import FloodPeer, GraphPeer, EmptyPeer
+from peers import TrackPeer, FloodPeer, GraphPeer, EmptyPeer
 from utils import distance
 
 pygame.init()
@@ -15,6 +15,8 @@ font = pygame.font.SysFont(None, 24)
 
 w = 1000#800
 h = 800#600
+
+numnodes = 50
 
 radius = 300
 
@@ -27,7 +29,7 @@ world = None
 def create_world():
 	global world
 	world = World(w,h,radius)
-	world.add_peers(GraphPeer, 5)
+	world.add_peers(GraphPeer, numnodes)
 	world.init()
 
 create_world()
@@ -55,15 +57,21 @@ while running:
 		pygame.draw.line(screen, (0,200,0), event[0].pos, event[1].pos, width=1)
 		pygame.draw.line(screen, (0,255,0), event[0].pos, ((event[0].pos[0]+event[1].pos[0])//2, (event[0].pos[1]+event[1].pos[1])//2), width=3)
 
+	knownpeers = set()
+
 	if world.selected_peer:
 		ptext.draw(json.dumps(world.selected_peer.state, sort_keys=True, indent=4), pos=(0,0), color=(0,0,0), fontsize=12)
 		x,y = world.selected_peer.pos
 		pygame.draw.rect(screen, (255, 100, 100), pygame.Rect(x-peer_width//2-selrect, y-peer_height//2-selrect, peer_width+selrect*2, peer_height+selrect*2))
+		if isinstance(world.selected_peer, TrackPeer):
+			knownpeers = set(list(world.selected_peer.state["ping"].keys())) | set([pid for kv in world.selected_peer.state["ping"].values() for pid in kv.keys()])
+
 
 	for peer in world.peers:
 		x,y = peer.pos
 
-		pygame.draw.rect(screen, (100, 100, 255), pygame.Rect(x-peer_width//2, y-peer_height//2, peer_width, peer_height))
+		peercolor = (255, 255, 100) if peer.pid in knownpeers else (100, 100, 255)
+		pygame.draw.rect(screen, peercolor, pygame.Rect(x-peer_width//2, y-peer_height//2, peer_width, peer_height))
 
 		#img = font.render(, True, (0,0,0))
 		#screen.blit(img, (x-peer_width//2, y-peer_height//2))

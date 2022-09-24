@@ -162,11 +162,12 @@ class World:
         if self.every:
             #os.system("clear")
             self.cbacklog = sum([len(peer.recvarr) for peer in self.peers])
+            keptflags = sum([len([msg for msg in peer.recvarr if msg["content"]["type"] == "flag"])])#and not own flags
             self.check()
             FlagAvgLag = self.flagavglag if self.flagavglag else float("NaN")
             InvFlagBandw = 1.0/self.flagbandwidth if self.flagbandwidth else float("NaN")
-            roundresult = "ITER:{} FPS:{} Sent:{} Recv:{} Backlog:{} Flags:{} Cleared:{} FlAvgLag: {:.2f}it InvFlBw: {:.2f}it/fl".format(
-                self.it, int(1/(simend-simstart)), self.csend, self.crecv, self.cbacklog, self.totalobjectives, self.clearedobjectives, FlagAvgLag, InvFlagBandw)
+            roundresult = "ITER:{} FPS:{} Sent:{} Recv:{} Backlog:{} Flags:{} Cleared:{} Kept:{} FlAvgLag: {:.2f}it InvFlBw: {:.2f}it/fl".format(
+                self.it, int(1/(simend-simstart)), self.csend, self.crecv, self.cbacklog, self.totalobjectives, self.clearedobjectives, keptflags, FlagAvgLag, InvFlagBandw)
             print(roundresult)
 
             #self.draw()
