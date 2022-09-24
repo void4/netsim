@@ -10,15 +10,19 @@ import networkx as nx
 
 os.makedirs("anim", exist_ok=True)
 
-from utils import wrappedDistance, Every
+from utils import distance, Every
 
 class World:
     def __init__(self, width=800, height=600, radius=300,runtime=100):
         self.width = width
         self.height = height
+
         self.radius = radius
         self.runtime = runtime
+
+        self.peerid = 0
         self.peers = []
+
         self.csend = 0
         self.crecv = 0
         self.every = Every(1)
@@ -36,20 +40,28 @@ class World:
         self.connectivity = []
         self.events = []
 
-    def add(self, peer):
+    def add(self, peercls):
+        peer = peercls()
         peer.pos = [random()*self.width, random()*self.height]
+        peer.pid = self.peerid
+        self.peerid += 1
         self.peers.append(peer)
         return peer
 
     def add_peers(self, cls, count, ensureconnected=True):
+        attempts = 1
         while True:
             for p in range(count):
-                self.add(cls())
+                self.add(cls)
 
             if not ensureconnected or self.connected_components() == 1:
                 break
 
             self.peers = []
+            self.peerid = 0
+            attempts += 1
+
+        print("Peer network generated after "+str(attempts)+" attempts.")
 
     def connected_components(self):
         edges = []
@@ -60,7 +72,7 @@ class World:
         for peer in self.peers:
             for pid in index.intersect((peer.pos[0]-self.radius,peer.pos[1]-self.radius,peer.pos[0]+1+self.radius,peer.pos[1]+1+self.radius)):
                 peer2 = self.peers[pid]
-                dist = wrappedDistance(peer.pos, peer2.pos, self.width, self.height)
+                dist = distance(peer.pos, peer2.pos)
                 if peer2 != peer and dist<self.radius:
                     edges.append([peer.pid, pid])
 
@@ -124,7 +136,7 @@ class World:
             self.csend += len(peer.sendarr)
             for pid in index.intersect((peer.pos[0]-self.radius,peer.pos[1]-self.radius,peer.pos[0]+1+self.radius,peer.pos[1]+1+self.radius)):
                 peer2 = self.peers[pid]
-                dist = wrappedDistance(peer.pos, peer2.pos, self.width, self.height)
+                dist = distance(peer.pos, peer2.pos)
                 if peer2 != peer and dist<self.radius:#10/dist>random():
                     self.connectivity.append([peer, peer2, ""])
                     for msg in peer.sendarr:

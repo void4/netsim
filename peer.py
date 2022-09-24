@@ -1,16 +1,12 @@
 import stackless
 from utils import Every
 
-
-peerid = 0
 # Add local time with different offset and speed
 # Or number of executed instructions
 class Peer:
     def __init__(self):
         # Unique Peer ID
-        global peerid
-        self.pid = peerid
-        peerid += 1
+        self.pid = None
 
         # Packet sequence number
         self.seq = 0
