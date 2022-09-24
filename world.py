@@ -70,12 +70,14 @@ class World:
             index.insert(peer.pid, (peer.pos[0],peer.pos[1],peer.pos[0]+1,peer.pos[1]+1))
 
         for peer in self.peers:
+            edges.append([peer.pid, peer.pid])#to detect if fully connected, nodes without connections have to be added to
             for pid in index.intersect((peer.pos[0]-self.radius,peer.pos[1]-self.radius,peer.pos[0]+1+self.radius,peer.pos[1]+1+self.radius)):
                 peer2 = self.peers[pid]
                 dist = distance(peer.pos, peer2.pos)
                 if peer2 != peer and dist<self.radius:
                     edges.append([peer.pid, pid])
 
+        print(edges)
         graph = nx.Graph(edges)
         return nx.number_connected_components(graph)
 

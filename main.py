@@ -21,14 +21,18 @@ screen = pygame.display.set_mode((w,h))
 
 color = (255, 255, 255)
 
-world = World(w,h,radius)
-world.add_peers(GraphPeer, 5)
+world = None
 
-world.init()
+def create_world():
+	global world
+	world = World(w,h,radius)
+	world.add_peers(GraphPeer, 5)
+	world.init()
+
+create_world()
 
 peer_width = 20
 peer_height = 20
-
 
 i = 0
 running = True
@@ -52,14 +56,22 @@ while running:
 
 		#img = font.render(, True, (0,0,0))
 		#screen.blit(img, (x-peer_width//2, y-peer_height//2))
-		nodeinfo = "sent: "+str(peer.seq)+"\nrecvbuf: "+str(len(peer.recvarr))
+		nodeinfo = "id: "+str(peer.pid)+"\nsent: "+str(peer.seq)+"\nrecvbuf: "+str(len(peer.recvarr))
 		ptext.draw(nodeinfo, pos=(x-peer_width//2, y-peer_height//2), color=(0,0,0), fontsize=12)
 
 	i += 1
 
+	keys = pygame.key.get_pressed()
+
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			running = False
+		elif event.type == pygame.KEYDOWN:
+			k = pygame.key.name(event.key)
+			if k == "q":
+				running = False
+			elif k == "r":
+				create_world()
 
 	pygame.display.flip()
 
