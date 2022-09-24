@@ -23,6 +23,8 @@ class World:
         self.peerid = 0
         self.peers = []
 
+        self.selected_peer = None
+
         self.csend = 0
         self.crecv = 0
         self.every = Every(1)
@@ -151,6 +153,8 @@ class World:
                         self.crecv += 1
             peer.sendarr = []
             #peer.pos = [(p+(random()-0.5)*0.2)%self.size for p in peer.pos]
+
+        self.index = index
 
         self.it += 1
 
