@@ -22,8 +22,7 @@ screen = pygame.display.set_mode((w,h))
 color = (255, 255, 255)
 
 world = World(w,h,radius)
-for i in range(5):
-	world.add(GraphPeer())#GraphPeer())
+world.add_peers(GraphPeer, 5)
 
 world.init()
 

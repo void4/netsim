@@ -1,9 +1,12 @@
 import stackless
+
+import os
 from time import time
 from random import random, randint
-import os
+
 from PIL import Image, ImageDraw
 from pyqtree import Index
+import networkx as nx
 
 os.makedirs("anim", exist_ok=True)
 
@@ -36,6 +39,33 @@ class World:
     def add(self, peer):
         peer.pos = [random()*self.width, random()*self.height]
         self.peers.append(peer)
+        return peer
+
+    def add_peers(self, cls, count, ensureconnected=True):
+        while True:
+            for p in range(count):
+                self.add(cls())
+
+            if not ensureconnected or self.connected_components() == 1:
+                break
+
+            self.peers = []
+
+    def connected_components(self):
+        edges = []
+        index = Index((0,0,self.width,self.height))
+        for peer in self.peers:
+            index.insert(peer.pid, (peer.pos[0],peer.pos[1],peer.pos[0]+1,peer.pos[1]+1))
+
+        for peer in self.peers:
+            for pid in index.intersect((peer.pos[0]-self.radius,peer.pos[1]-self.radius,peer.pos[0]+1+self.radius,peer.pos[1]+1+self.radius)):
+                peer2 = self.peers[pid]
+                dist = wrappedDistance(peer.pos, peer2.pos, self.width, self.height)
+                if peer2 != peer and dist<self.radius:
+                    edges.append([peer.pid, pid])
+
+        graph = nx.Graph(edges)
+        return nx.number_connected_components(graph)
 
     def env(self):
         for peer in self.peers:

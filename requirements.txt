@@ -1,3 +1,4 @@
 Pillow
 pyqtree
 pygame
+networkx
