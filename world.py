@@ -77,7 +77,6 @@ class World:
                 if peer2 != peer and dist<self.radius:
                     edges.append([peer.pid, pid])
 
-        print(edges)
         graph = nx.Graph(edges)
         return nx.number_connected_components(graph)
 

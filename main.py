@@ -47,7 +47,8 @@ while running:
 		pygame.draw.line(screen, (0,0,0), event[0].pos, event[1].pos, width=1)
 
 	for event in world.events:
-		pygame.draw.line(screen, (0,255,0), event[0].pos, event[1].pos, width=5)
+		pygame.draw.line(screen, (0,200,0), event[0].pos, event[1].pos, width=1)
+		pygame.draw.line(screen, (0,255,0), event[0].pos, ((event[0].pos[0]+event[1].pos[0])//2, (event[0].pos[1]+event[1].pos[1])//2), width=3)
 
 	for peer in world.peers:
 		x,y = peer.pos
