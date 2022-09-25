@@ -16,9 +16,9 @@ font = pygame.font.SysFont(None, 24)
 w = 1000#800
 h = 800#600
 
-numnodes = 50
+numnodes = 300
 
-radius = 300
+radius = 80
 
 screen = pygame.display.set_mode((w,h))
 
@@ -29,7 +29,7 @@ world = None
 def create_world():
 	global world
 	world = World(w,h,radius)
-	world.add_peers(GraphPeer, numnodes)
+	world.add_peers(TrackPeer, numnodes)
 	world.init()
 
 create_world()
@@ -60,11 +60,11 @@ while running:
 	knownpeers = set()
 
 	if world.selected_peer:
-		ptext.draw(json.dumps(world.selected_peer.state, sort_keys=True, indent=4), pos=(0,0), color=(0,0,0), fontsize=12)
+		#ptext.draw(json.dumps(world.selected_peer.state, sort_keys=True, indent=4), pos=(0,0), color=(0,0,0), fontsize=12)
 		x,y = world.selected_peer.pos
 		pygame.draw.rect(screen, (255, 100, 100), pygame.Rect(x-peer_width//2-selrect, y-peer_height//2-selrect, peer_width+selrect*2, peer_height+selrect*2))
 		if isinstance(world.selected_peer, TrackPeer):
-			knownpeers = set(list(world.selected_peer.state["ping"].keys())) | set([pid for kv in world.selected_peer.state["ping"].values() for pid in kv.keys()])
+			knownpeers = world.selected_peer.get_knownpeers()
 
 
 	for peer in world.peers:
@@ -78,7 +78,7 @@ while running:
 		nodeinfo = "id: "+str(peer.pid)+"\nsent: "+str(peer.seq)+"\nrecvbuf: "+str(len(peer.recvarr))
 		ptext.draw(nodeinfo, pos=(x-peer_width//2, y-peer_height//2), color=(0,0,0), fontsize=12)
 
-
+	ptext.draw(world.worldstats, pos=(0,0), color=(0,100,0), fontsize=20)
 
 	i += 1
 

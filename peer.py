@@ -22,7 +22,6 @@ class Peer:
         self.sendarr = []
 
         # Statistics output interval
-        self.pingint = Every(0.25)
         self.statint = Every(0.5)
 
         # Flag input and output

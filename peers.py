@@ -1,20 +1,28 @@
 from time import time
 from random import random
-from peer import Peer
 from collections import Counter
+
+from peer import Peer
+from utils import Every
 
 # Tracks reliable neighbors
 class TrackPeer(Peer):
 
     def setup(self):
         self.state["ping"] = {self.pid:{}}
+        self.timeout = None#5
+        self.pingint = Every(30, randomoffset=30)#TODO add random start timeshift
+
+    def get_knownpeers(self):
+        return set(list(self.state["ping"].keys())) | set([pid for kv in list(self.state["ping"].values()) for pid in list(kv.keys())])
 
     def track(self):
+        # TODO: avoid mutual sends?
         rtime = time()
 
         if self.pingint:
             #if len(self.recvarr)<5:
-            self.send({"type":"ping", "origin":self.pid, "data":self.state["ping"][self.pid]})
+            self.send({"type":"ping", "origin":self.pid, "data":self.state["ping"]})#[self.pid]
 
         c = Counter()
         for msg in self.recvarr:
@@ -27,12 +35,49 @@ class TrackPeer(Peer):
             source = msg["source"]
             content = msg["content"]
 
-            if content["type"] == "ping":
+            if content["type"] == "ping" and content["origin"] != self.pid:
                 self.recvarr.pop(0)
-                self.state["ping"][content["origin"]] = content["data"]
-                if len(self.recvarr)<200 and random()<0.05:
-                    self.send(msg["content"])
 
+                #self.state["ping"][content["origin"]] = content["data"]
+                updates = 0
+                stale = 0
+                # TODO with moving/disconnecting peers, consider timeout even of those not sent
+                for key1, value1 in list(content["data"].items()):
+                    for key2, value2 in list(value1.items()):
+                        #print(key1, key2, value2)
+                        if key1 not in self.state["ping"]:
+                            self.state["ping"][key1] = {}
+
+                        if key2 not in self.state["ping"][key1]:
+                            self.state["ping"][key1][key2] = value2
+                            updates += 1
+                        else:
+                            if value2["num"] > self.state["ping"][key1][key2]["num"]:
+                                self.state["ping"][key1][key2] = value2
+                                updates += 1
+                            else:
+                                stale += 1
+                #print("u:", updates, "s:", stale)
+                #this should inversely depend on range to eventual receiving node/sending node? every node should have the same chance
+                # local node info shouldn't saturate the local net
+                # check how many unknowns there are, perhaps good proxy
+
+                """
+                knownpeers = self.get_knownpeers()
+                gossippeers = set(content["data"].keys()) | set([content["origin"]])
+                #print(gossippeers, knownpeers)
+                numunknowns = len(gossippeers.difference(knownpeers))
+                if numunknowns > 0:
+                    print("unknowns:", numunknowns)
+                """
+
+                # ocassionally sent unknown deltas only?
+                #if len(self.recvarr)<100 and ((numunknowns > 0 and random() < 1) or random()<0.05):#adjust probabilities with number of own peers, or "density" of locality
+                #    self.send(msg["content"])
+
+            # TODO: send occassional updates to the *edge* of the known network
+
+            # This tracks all direct contacts, not just ping packets
             if source != self.pid:
                 if source not in self.state["ping"][self.pid]:
                     #self.p("found", source)
@@ -41,15 +86,19 @@ class TrackPeer(Peer):
                     self.state["ping"][self.pid][source]["last"] = rtime
                     self.state["ping"][self.pid][source]["num"] += 1
 
-        for peer in list(self.state["ping"][self.pid]):
-            if rtime-self.state["ping"][self.pid][peer]["last"]>5:
-                #self.p("lost", peer)
-                del self.state["ping"][self.pid][peer]
+        if self.timeout:
+            for peer in list(self.state["ping"][self.pid]):
+                if rtime-self.state["ping"][self.pid][peer]["last"] > self.timeout:
+                    #self.p("lost", peer)
+                    del self.state["ping"][self.pid][peer]
 
         if self.statint:
             #self.p("Peers:{} Knows:{}".format(len(self.state["ping"][self.pid]), len(self.state["ping"])-1))
             #self.p(self.state["ping"])
             pass
+
+    def update(self):
+        self.track()
 
 
 class GraphPeer(TrackPeer):
@@ -180,3 +229,5 @@ class FloodPeer(TrackPeer):
                     else:
                         self.send(content, seq=msg["seq"])
                         #self.p("UNTARGETED PACKET")
+
+# TODO BloomFilterGossip

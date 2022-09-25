@@ -25,6 +25,9 @@ class World:
 
         self.selected_peer = None
 
+        self.index = None
+        self.movingpeers = False
+
         self.csend = 0
         self.crecv = 0
         self.every = Every(1)
@@ -41,6 +44,8 @@ class World:
 
         self.connectivity = []
         self.events = []
+
+        self.worldstats = ""
 
     def add(self, peercls):
         peer = peercls()
@@ -61,6 +66,7 @@ class World:
 
             self.peers = []
             self.peerid = 0
+            print("Generation attempt "+str(attempts)+" failed...")
             attempts += 1
 
         print("Peer network generated after "+str(attempts)+" attempts.")
@@ -132,16 +138,18 @@ class World:
         # Peers may be moving
         self.connectivity = []
         simstart = time()
-        index = Index((0,0,self.width,self.height))
-        for peer in self.peers:#randomize order
-            index.insert(peer.pid, (peer.pos[0],peer.pos[1],peer.pos[0]+1,peer.pos[1]+1))
+
+        if self.index is None or self.movingpeers:
+            self.index = Index((0,0,self.width,self.height))
+            for peer in self.peers:#randomize order
+                self.index.insert(peer.pid, (peer.pos[0],peer.pos[1],peer.pos[0]+1,peer.pos[1]+1))
 
         for peer in self.peers:
             peer.task.insert()
-            stackless.run(1000)#run for n seconds?#randint(500,3000))
+            stackless.run(10000)#run for n seconds?#randint(500,3000))
             peer.task.remove()
             self.csend += len(peer.sendarr)
-            for pid in index.intersect((peer.pos[0]-self.radius,peer.pos[1]-self.radius,peer.pos[0]+1+self.radius,peer.pos[1]+1+self.radius)):
+            for pid in self.index.intersect((peer.pos[0]-self.radius,peer.pos[1]-self.radius,peer.pos[0]+1+self.radius,peer.pos[1]+1+self.radius)):
                 peer2 = self.peers[pid]
                 dist = distance(peer.pos, peer2.pos)
                 if peer2 != peer and dist<self.radius:#10/dist>random():
@@ -154,8 +162,6 @@ class World:
             peer.sendarr = []
             #peer.pos = [(p+(random()-0.5)*0.2)%self.size for p in peer.pos]
 
-        self.index = index
-
         self.it += 1
 
         simend = time()
@@ -166,10 +172,10 @@ class World:
             self.check()
             FlagAvgLag = self.flagavglag if self.flagavglag else float("NaN")
             InvFlagBandw = 1.0/self.flagbandwidth if self.flagbandwidth else float("NaN")
-            roundresult = "ITER:{} FPS:{} Sent:{} Recv:{} Backlog:{} Flags:{} Cleared:{} Kept:{} FlAvgLag: {:.2f}it InvFlBw: {:.2f}it/fl".format(
-                self.it, int(1/(simend-simstart)), self.csend, self.crecv, self.cbacklog, self.totalobjectives, self.clearedobjectives, keptflags, FlagAvgLag, InvFlagBandw)
+            roundresult = "ITER:{} FPS:{} Sent:{} Recv:{} Backlog:{} AvgBacklog:{:.2f} Flags:{} Cleared:{} Kept:{} FlAvgLag: {:.2f}it InvFlBw: {:.2f}it/fl".format(
+                self.it, int(1/(simend-simstart)), self.csend, self.crecv, self.cbacklog, self.cbacklog/len(self.peers), self.totalobjectives, self.clearedobjectives, keptflags, FlagAvgLag, InvFlagBandw)
             print(roundresult)
-
+            self.worldstats = roundresult
             #self.draw()
 
 
